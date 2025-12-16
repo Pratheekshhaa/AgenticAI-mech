@@ -1,0 +1,101 @@
+# Agent Configuration
+master_agent:
+  agent_id: "master_agent"
+  heartbeat_interval_seconds: 30
+  agent_timeout_seconds: 30
+  max_retries: 3
+  monitoring_interval_seconds: 5
+
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+  decode_responses: true
+
+agents:
+  data_analysis_agent:
+    type: "worker"
+    endpoint: "http://localhost:8001"
+    capabilities:
+      - "analyze_telematics"
+      - "detect_anomalies"
+      - "forecast_service_demand"
+      - "extract_features"
+    max_concurrent_tasks: 5
+  
+  diagnosis_agent:
+    type: "worker"
+    endpoint: "http://localhost:8002"
+    capabilities:
+      - "diagnose_failures"
+      - "predict_component_life"
+      - "assign_priority"
+      - "recommend_actions"
+    max_concurrent_tasks: 5
+  
+  customer_engagement_agent:
+    type: "worker"
+    endpoint: "http://localhost:8003"
+    capabilities:
+      - "notify_customer"
+      - "schedule_callback"
+      - "collect_feedback"
+    max_concurrent_tasks: 10
+  
+  scheduling_agent:
+    type: "worker"
+    endpoint: "http://localhost:8004"
+    capabilities:
+      - "book_appointment"
+      - "check_availability"
+      - "reschedule"
+    max_concurrent_tasks: 8
+  
+  rca_agent:
+    type: "worker"
+    endpoint: "http://localhost:8005"
+    capabilities:
+      - "analyze_root_cause"
+      - "generate_capa"
+      - "feedback_to_manufacturing"
+    max_concurrent_tasks: 3
+
+telematics:
+  streaming_interval_seconds: 1
+  anomaly_threshold: 0.8
+  historical_data_days: 30
+
+service_centers:
+  locations:
+    - id: "SC001"
+      city: "Delhi"
+      capacity: 20
+      working_hours: "08:00-20:00"
+    - id: "SC002"
+      city: "Mumbai"
+      capacity: 15
+      working_hours: "09:00-19:00"
+    - id: "SC003"
+      city: "Bangalore"
+      capacity: 25
+      working_hours: "08:00-20:00"
+
+customer_engagement:
+  primary_channel: "voice"
+  secondary_channel: "mobile_app"
+  notification_templates:
+    critical: "Urgent: Your vehicle needs immediate service. Component: {component}. Risk: {risk}%"
+    warning: "Warning: Schedule service for {component} within {days} days"
+    info: "Reminder: Your vehicle is due for routine maintenance"
+
+manufacturing_feedback:
+  endpoint: "http://manufacturing-api:8080"
+  batch_size: 10
+  frequency_hours: 24
+
+logging:
+  level: "INFO"
+  file: "logs/agent_system.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  max_size_mb: 10
+  backup_count: 5

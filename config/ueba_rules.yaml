@@ -1,0 +1,145 @@
+# UEBA (User and Entity Behavior Analytics) Rules
+# Security rules for monitoring agent behavior
+
+anomaly_detection:
+  # API Call Monitoring
+  api_calls:
+    max_calls_per_minute: 100
+    max_calls_per_hour: 1000
+    unusual_pattern_threshold: 0.7
+    alert_on_burst: true
+  
+  # Workflow Monitoring
+  workflows:
+    max_concurrent_workflows: 10
+    max_workflow_duration_minutes: 60
+    unusual_workflow_patterns:
+      - "too_many_retries"
+      - "rapid_state_changes"
+      - "unexpected_agent_calls"
+  
+  # Agent Behavior Monitoring
+  agents:
+    max_messages_per_minute: 50
+    max_failed_requests_per_hour: 10
+    expected_response_time_seconds: 5
+    inactivity_threshold_minutes: 30
+  
+  # Data Access Monitoring
+  data_access:
+    unauthorized_access_patterns:
+      - "access_outside_normal_hours"
+      - "unusual_data_volume"
+      - "sensitive_data_access"
+    data_exfiltration_threshold_mb: 10
+
+alert_severity_levels:
+  critical:
+    triggers:
+      - "unauthorized_agent_registration"
+      - "data_tampering_detected"
+      - "system_breach_attempt"
+    actions:
+      - "isolate_agent"
+      - "alert_security_team"
+      - "stop_workflows"
+    notification_channels:
+      - "email"
+      - "sms"
+      - "dashboard"
+  
+  high:
+    triggers:
+      - "api_rate_limit_exceeded"
+      - "unusual_workflow_pattern"
+      - "sensitive_data_access"
+    actions:
+      - "throttle_agent"
+      - "log_detailed"
+      - "notify_admin"
+    notification_channels:
+      - "email"
+      - "dashboard"
+  
+  medium:
+    triggers:
+      - "inactive_agent"
+      - "high_latency"
+      - "unusual_time_access"
+    actions:
+      - "send_warning"
+      - "increase_monitoring"
+    notification_channels:
+      - "dashboard"
+  
+  low:
+    triggers:
+      - "minor_config_changes"
+      - "expected_anomalies"
+    actions:
+      - "log_only"
+    notification_channels:
+      - "log_file"
+
+auto_isolation_rules:
+  enabled: true
+  isolation_triggers:
+    - "repeated_unauthorized_access"
+    - "malicious_behavior_detected"
+    - "data_exfiltration_attempt"
+  isolation_duration_minutes: 60
+  review_required: true
+
+baseline_learning:
+  enabled: true
+  learning_period_days: 7
+  update_frequency_hours: 24
+  minimum_data_points: 1000
+
+reporting:
+  daily_reports: true
+  report_time: "00:00"
+  report_channels:
+    - "email"
+    - "dashboard"
+  retention_days: 90
+
+integration:
+  siem_systems:
+    - name: "splunk"
+      endpoint: "https://splunk.example.com"
+    - name: "elastic"
+      endpoint: "https://elastic.example.com"
+  
+  alerting_systems:
+    - name: "pagerduty"
+      endpoint: "https://pagerduty.example.com"
+    - name: "slack"
+      endpoint: "https://slack.example.com"
+
+compliance:
+  gdpr_enabled: true
+  data_retention_days: 365
+  audit_log_enabled: true
+  encryption_required: true
+
+rules_examples:
+  - name: "Agent API Call Spike"
+    description: "Detects when an agent makes unusually high API calls"
+    condition: "api_calls_per_minute > 100 AND api_calls_per_minute > (baseline * 3)"
+    severity: "high"
+    
+  - name: "Unauthorized Data Access"
+    description: "Detects access to unauthorized data sources"
+    condition: "data_source NOT IN allowed_sources AND access_count > 0"
+    severity: "critical"
+    
+  - name: "Workflow Tampering"
+    description: "Detects unexpected changes in workflow execution"
+    condition: "workflow_steps_changed > 3 AND not_in_approved_changes"
+    severity: "high"
+    
+  - name: "Agent Inactivity"
+    description: "Detects when agent is inactive for too long"
+    condition: "last_heartbeat > 30 minutes"
+    severity: "medium"

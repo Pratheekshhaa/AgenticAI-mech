@@ -1,0 +1,36 @@
+# ===============================
+# DATASETS (DO NOT TRACK)
+# ===============================
+data/
+data/**
+
+# Extra safety (anywhere in repo)
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.zip
+
+# ===============================
+# PYTHON
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+
+# ===============================
+# STREAMLIT
+# ===============================
+.streamlit/
+
+# ===============================
+# OS / EDITOR
+# ===============================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

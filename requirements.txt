@@ -1,0 +1,11 @@
+streamlit
+pandas
+numpy
+langchain-ollama
+whisper
+soundfile
+librosa
+gtts
+folium
+streamlit-folium
+
