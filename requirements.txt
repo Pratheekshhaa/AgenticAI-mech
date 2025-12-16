@@ -1,11 +1,47 @@
-streamlit
-pandas
-numpy
+
+# Core Backend
+fastapi==0.104.1
+uvicorn==0.25.0
+aiohttp==3.9.3
+redis==5.0.1
+websockets==12.0
+python-multipart==0.0.6
+jinja2
+sqlalchemy
+requests
+
+# Configuration & Validation
+pydantic==2.5.0
+pyyaml==6.0.1
+python-dotenv==1.0.0
+
+# Data Processing
+numpy==1.26.0
+pandas==2.1.3
+scipy==1.11.4
+opencv-python
+Pillow
+
+# Machine Learning
+scikit-learn==1.3.2
+joblib==1.3.2
+paddleocr
+paddlepaddle
+
+# LLM / Audio / AI
 langchain-ollama
-whisper
+openai-whisper
 soundfile
 librosa
 gtts
+
+# Frontend / Visualization
+streamlit
 folium
 streamlit-folium
 
+# Development & Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+flake8==6.1.0

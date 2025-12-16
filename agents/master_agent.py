@@ -317,6 +317,39 @@ class MasterAgent:
             "recent_workflows": self.workflow_logs[-5:] if self.workflow_logs else [],
             "ueba_alerts": self.ueba_alerts[-10:] if self.ueba_alerts else []
         }
+    def update_post_service_feedback(
+    self,
+    vehicle_id: str,
+    service_type: str,
+    service_center: str,
+    feedback: dict,
+    ):
+        """
+        Internal learning hook.
+        Updates system confidence and service performance metrics.
+        """
+
+        if not hasattr(self, "feedback_log"):
+            self.feedback_log = []
+
+        self.feedback_log.append({
+            "vehicle_id": vehicle_id,
+            "service_type": service_type,
+            "service_center": service_center,
+            "rating": feedback.get("rating"),
+            "sentiment": feedback.get("sentiment"),
+            "service_quality": feedback.get("service_quality"),
+        })
+
+        # Optional heuristics (demo-safe)
+        if feedback.get("sentiment") == "Negative":
+            self.system_confidence = max(
+                getattr(self, "system_confidence", 1.0) - 0.05, 0.5
+            )
+        else:
+            self.system_confidence = min(
+                getattr(self, "system_confidence", 1.0) + 0.02, 1.0
+            )
 
 # Singleton instance
 _master_agent_instance = None
@@ -358,3 +391,5 @@ if __name__ == "__main__":
         print(f"\n📋 Workflow Result: {result}")
     
     asyncio.run(test())
+
+

@@ -144,6 +144,10 @@ if st.button("✅ Confirm Service Booking"):
         st.stop()
 
     st.success("🎉 Service Booking Request Submitted!")
+    st.info("After service completion, please submit feedback to improve predictions.")
+    if st.button("📝 Give Feedback Later"):
+        st.switch_page("pages/Feedback_Agent.py")
+
 
     st.markdown("### 📄 Booking Summary")
     st.markdown(f"""
