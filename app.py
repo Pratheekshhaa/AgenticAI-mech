@@ -1,167 +1,214 @@
 import streamlit as st
-from langchain_ollama import ChatOllama
+import asyncio
+import pandas as pd
+from datetime import datetime
 
+# =========================
+# IMPORT AGENT CLASSES
+# =========================
+from agents.data_analysis_agent import DataAnalysisAgent
+from agents.diagnosis_agent import DiagnosisAgent
+from agents.master_agent import get_master_agent
+
+# Chat + RCA
+from langchain_ollama import ChatOllama
 from utils.rca_engine import load_all_datasets, build_rca_signal
 from services.speech_to_text import transcribe
 from services.text_to_speech import speak
 
-# =====================
+# =========================
 # PAGE CONFIG
-# =====================
+# =========================
 st.set_page_config(
-    page_title="Automotive AI Assistant",
+    page_title="Agentic Automotive AI",
     page_icon="🚗",
     layout="wide"
 )
 
-st.title("🤖 Automotive AI Assistant")
+# =========================
+# INIT AGENTS (SINGLETON STYLE)
+# =========================
+@st.cache_resource
+def init_agents():
+    return {
+        "data": DataAnalysisAgent(),
+        "diagnosis": DiagnosisAgent(),
+        "master": get_master_agent()
+    }
 
-# =====================
-# LOAD DATASETS (ONLY ONCE)
-# =====================
-@st.cache_data
-def get_datasets():
-    return load_all_datasets("data")
+agents = init_agents()
 
-datasets = get_datasets()
+# =========================
+# SIDEBAR NAVIGATION
+# =========================
+st.sidebar.title("🧭 Navigation")
 
-# =====================
+page = st.sidebar.radio(
+    "Go to",
+    [
+        "🏠 Agent Dashboard",
+        "💬 Normal Chat",
+        "🧠 Deep RCA",
+        "📅 Schedule Service",
+    ],
+)
+
+lang = st.sidebar.selectbox("Language", ["English", "Hindi"])
+
+# =========================
 # LLM
-# =====================
+# =========================
 llm = ChatOllama(
     model="llama3.1:8b",
     base_url="http://localhost:11434",
     temperature=0.35
 )
 
-# =====================
-# SIDEBAR
-# =====================
-st.sidebar.header("Mode")
+# =========================
+# DATASETS (ONLY FOR RCA)
+# =========================
+@st.cache_data
+def get_datasets():
+    return load_all_datasets("data")
 
-chat_mode = st.sidebar.radio(
-    "Select Assistant Mode",
-    ["⚡ Normal Chat", "🧠 Deep RCA Analysis"],
-    index=0
-)
+datasets = get_datasets()
 
-lang = st.sidebar.selectbox("Language", ["English", "Hindi"])
+# ======================================================
+# 🏠 HOME — AGENT DASHBOARD
+# ======================================================
+if page == "🏠 Agent Dashboard":
 
-if st.sidebar.button("📅 Schedule Service"):
-    st.switch_page("pages/Schedule_Service.py")
+    st.title("🤖 Agentic Automotive AI – Live Agent Dashboard")
 
-# =====================
-# OPTIONAL VEHICLE DETAILS
-# =====================
-with st.expander("🚗 Optional Vehicle Details (improves accuracy)"):
-    brand = st.text_input("Brand (optional)")
-    model = st.text_input("Model (optional)")
-    year = st.text_input("Year (optional)")
+    # -------- MASTER AGENT --------
+    st.subheader("🧠 Master Agent Status")
+    master_data = agents["master"].get_dashboard_data()
+    st.json(master_data)
 
-# =====================
-# USER INPUT
-# =====================
-st.markdown("### Describe your vehicle problem")
+    # -------- DATA ANALYSIS AGENT --------
+    st.subheader("📊 Data Analysis Agent (Sample Run)")
 
-mic = st.audio_input("🎤 Speak")
-text = st.text_area(
-    "Or type here",
-    placeholder="Example: car overheats after long drive"
-)
+    sample_telematics = {
+        "vehicle_id": "DEMO_VEHICLE",
+        "telematics_data": {
+            "engine_temp": 112,
+            "oil_pressure": 28,
+            "brake_pad_wear": 82,
+            "tire_pressure": 31,
+            "battery_voltage": 12.4,
+            "rpm": 2900,
+            "fuel_level": 55
+        }
+    }
 
-if mic:
-    text = transcribe(mic.getvalue())
+    analysis_result = asyncio.run(
+        agents["data"].analyze_telematics(sample_telematics)
+    )
 
-if not text.strip():
-    st.stop()
+    st.metric("Health Score", analysis_result["health_score"])
+    st.metric("Anomalies Detected", analysis_result["anomalies_detected"])
+    st.json(analysis_result["service_forecast"])
 
-# =====================
-# SUBMIT
-# =====================
-if st.button("Submit"):
+    # -------- DIAGNOSIS AGENT --------
+    st.subheader("🔧 Diagnosis Agent Output")
 
-    # -----------------------------
-    # NORMAL CHAT MODE
-    # -----------------------------
-    if chat_mode == "⚡ Normal Chat":
+    diagnosis_input = {
+        "vehicle_id": "DEMO_VEHICLE",
+        "analysis_data": {
+            "anomalies": analysis_result["anomalies"]
+        }
+    }
 
+    diagnosis_result = asyncio.run(
+        agents["diagnosis"].diagnose_failures(diagnosis_input)
+    )
+
+    st.metric("Priority", diagnosis_result["priority"])
+    st.metric("Confidence", diagnosis_result["confidence_score"])
+    st.dataframe(pd.DataFrame(diagnosis_result["predicted_failures"]))
+
+    st.caption(f"Last refreshed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+# ======================================================
+# 💬 NORMAL CHAT
+# ======================================================
+elif page == "💬 Normal Chat":
+
+    st.title("💬 Automotive Assistant (Quick Help)")
+
+    mic = st.audio_input("🎤 Speak")
+    text = st.text_area("Describe your issue")
+
+    if mic:
+        text = transcribe(mic.getvalue())
+
+    if st.button("Ask"):
         prompt = f"""
 You are an experienced automotive assistant.
 
 User problem:
 {text}
 
-Vehicle details (if any):
-Brand: {brand or "Not specified"}
-Model: {model or "Not specified"}
-Year: {year or "Not specified"}
-
-Instructions:
-- Give quick, practical advice
-- Do NOT do deep RCA
-- Do NOT mention datasets
-- Focus on what the user can do now
-- Keep response short and helpful
+Give quick, practical advice.
+No deep RCA. No datasets.
 
 Respond ONLY in {lang}.
 """
-
-        with st.spinner("Thinking..."):
-            response = llm.invoke(prompt).content
-
-        st.subheader("⚡ Quick Assistance")
+        response = llm.invoke(prompt).content
         st.write(response)
+        st.audio(speak(response, lang), format="audio/mp3")
 
-        try:
-            st.audio(speak(response, lang), format="audio/mp3")
-        except:
-            pass
+# ======================================================
+# 🧠 DEEP RCA
+# ======================================================
+elif page == "🧠 Deep RCA":
 
-    # -----------------------------
-    # DEEP RCA MODE
-    # -----------------------------
-    else:
-        with st.spinner("Running deep root cause analysis..."):
+    st.title("🧠 Deep Root Cause Analysis")
 
-            signal = build_rca_signal(text, datasets)
+    with st.expander("🚗 Optional Vehicle Details"):
+        brand = st.text_input("Brand")
+        model = st.text_input("Model")
+        year = st.text_input("Year")
 
-            prompt = f"""
-You are a senior automotive service engineer performing ROOT CAUSE ANALYSIS.
+    mic = st.audio_input("🎤 Speak")
+    text = st.text_area("Describe the problem")
+
+    if mic:
+        text = transcribe(mic.getvalue())
+
+    if st.button("Run RCA"):
+        signal = build_rca_signal(text, datasets)
+
+        prompt = f"""
+You are a senior automotive service engineer.
 
 User complaint:
 {text}
 
-Vehicle details:
+Vehicle:
 Brand: {brand or "Not specified"}
 Model: {model or "Not specified"}
 Year: {year or "Not specified"}
 
-Internal reasoning hint:
+Internal hint:
 {signal}
 
-IMPORTANT RULES:
-- Do NOT mention datasets, CSVs, or records
-- Do NOT mention brands unless user gave them
-- Assume a generic passenger vehicle if details are missing
-- Explain like a mechanic talking to a customer
+Explain:
+1. What the problem indicates
+2. Possible causes
+3. How to fix now
+4. When it becomes serious
+5. How to prevent
 
-Provide:
-
-1. What the problem likely indicates
-2. Possible causes (ranked, practical)
-3. How the user can fix or check it now
-4. When the issue becomes serious or unsafe
-5. How to prevent this issue in the future
-
+Do NOT mention datasets.
 Respond ONLY in {lang}.
 """
-
-            response = llm.invoke(prompt).content
-
-        st.subheader("🧠 Deep RCA & Prevention")
+        response = llm.invoke(prompt).content
         st.write(response)
+        st.audio(speak(response, lang), format="audio/mp3")
 
-        try:
-            st.audio(speak(response, lang), format="audio/mp3")
-        except:
-            pass
+# ======================================================
+# 📅 SCHEDULE SERVICE
+# ======================================================
+elif page == "📅 Schedule Service":
+    st.switch_page("pages/Schedule_Service.py")
