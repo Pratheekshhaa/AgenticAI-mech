@@ -41,15 +41,15 @@ agents = init_agents()
 # =========================
 # SIDEBAR NAVIGATION
 # =========================
-st.sidebar.title("🧭 Navigation")
+st.sidebar.title("Navigation")
 
 page = st.sidebar.radio(
     "Go to",
     [
-        "🏠 Agent Dashboard",
-        "💬 Normal Chat",
-        "🧠 Deep RCA",
-        "📅 Schedule Service",
+        "Agent Dashboard",
+        "Normal Chat",
+        "Deep RCA",
+        "Schedule Service",
     ],
 )
 
@@ -76,17 +76,17 @@ datasets = get_datasets()
 # ======================================================
 # 🏠 HOME — AGENT DASHBOARD
 # ======================================================
-if page == "🏠 Agent Dashboard":
+if page == "Agent Dashboard":
 
-    st.title("🤖 Agentic Automotive AI – Live Agent Dashboard")
+    st.title("Agentic Automotive AI – Live Agent Dashboard")
 
     # -------- MASTER AGENT --------
-    st.subheader("🧠 Master Agent Status")
+    st.subheader("Master Agent Status")
     master_data = agents["master"].get_dashboard_data()
     st.json(master_data)
 
     # -------- DATA ANALYSIS AGENT --------
-    st.subheader("📊 Data Analysis Agent (Sample Run)")
+    st.subheader("Data Analysis Agent (Sample Run)")
 
     sample_telematics = {
         "vehicle_id": "DEMO_VEHICLE",
@@ -110,7 +110,7 @@ if page == "🏠 Agent Dashboard":
     st.json(analysis_result["service_forecast"])
 
     # -------- DIAGNOSIS AGENT --------
-    st.subheader("🔧 Diagnosis Agent Output")
+    st.subheader("Diagnosis Agent Output")
 
     diagnosis_input = {
         "vehicle_id": "DEMO_VEHICLE",
@@ -132,11 +132,11 @@ if page == "🏠 Agent Dashboard":
 # ======================================================
 # 💬 NORMAL CHAT
 # ======================================================
-elif page == "💬 Normal Chat":
+elif page == "Normal Chat":
 
-    st.title("💬 Automotive Assistant (Quick Help)")
+    st.title(" Automotive Assistant (Quick Help)")
 
-    mic = st.audio_input("🎤 Speak")
+    mic = st.audio_input(" Speak")
     text = st.text_area("Describe your issue")
 
     if mic:
@@ -161,16 +161,16 @@ Respond ONLY in {lang}.
 # ======================================================
 # 🧠 DEEP RCA
 # ======================================================
-elif page == "🧠 Deep RCA":
+elif page == "Deep RCA":
 
-    st.title("🧠 Deep Root Cause Analysis")
+    st.title("Deep Root Cause Analysis")
 
-    with st.expander("🚗 Optional Vehicle Details"):
+    with st.expander("Optional Vehicle Details"):
         brand = st.text_input("Brand")
         model = st.text_input("Model")
         year = st.text_input("Year")
 
-    mic = st.audio_input("🎤 Speak")
+    mic = st.audio_input("Speak")
     text = st.text_area("Describe the problem")
 
     if mic:
@@ -210,5 +210,5 @@ Respond ONLY in {lang}.
 # ======================================================
 # 📅 SCHEDULE SERVICE
 # ======================================================
-elif page == "📅 Schedule Service":
+elif page == "Schedule Service":
     st.switch_page("pages/Schedule_Service.py")

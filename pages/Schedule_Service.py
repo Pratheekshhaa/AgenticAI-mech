@@ -4,7 +4,7 @@ import folium
 from streamlit_folium import st_folium
 
 st.set_page_config(page_title="Schedule Service", layout="wide")
-st.title("📅 Vehicle Service Booking")
+st.title("Vehicle Service Booking")
 
 # ---------------- LOAD DATA ----------------
 df = pd.read_csv("data/datasett.csv")
@@ -38,7 +38,7 @@ if missing:
 # =========================
 # 👤 CUSTOMER DETAILS
 # =========================
-st.subheader("👤 Customer Details")
+st.subheader("Customer Details")
 
 c1, c2, c3 = st.columns(3)
 with c1:
@@ -51,7 +51,7 @@ with c3:
 # =========================
 # 🚗 VEHICLE DETAILS
 # =========================
-st.subheader("🚗 Vehicle Details")
+st.subheader("Vehicle Details")
 
 v1, v2, v3 = st.columns(3)
 with v1:
@@ -92,7 +92,7 @@ if city:
         filtered[CITY_COL].astype(str).str.contains(city, case=False, na=False)
     ]
 
-st.subheader("🏭 Available Service Centers")
+st.subheader("Available Service Centers")
 
 if filtered.empty:
     st.warning("No service centers found for this service/location.")
@@ -107,7 +107,7 @@ st.dataframe(
 # 🗺 MAP VIEW
 # =========================
 if LAT_COL and LON_COL:
-    st.subheader("📍 Service Centers Map")
+    st.subheader("Service Centers Map")
 
     m = folium.Map(location=[12.97, 77.59], zoom_start=10)
 
@@ -123,7 +123,7 @@ if LAT_COL and LON_COL:
 # =========================
 # 📅 APPOINTMENT DETAILS
 # =========================
-st.subheader("📅 Appointment Preference")
+st.subheader("Appointment Preference")
 
 a1, a2 = st.columns(2)
 with a1:
@@ -137,19 +137,19 @@ with a2:
 # =========================
 # ✅ CONFIRM BOOKING
 # =========================
-if st.button("✅ Confirm Service Booking"):
+if st.button("Confirm Service Booking"):
 
     if not customer_name or not phone or not brand or not model:
-        st.error("❌ Please fill all mandatory fields (name, phone, brand, model).")
+        st.error("Please fill all mandatory fields (name, phone, brand, model).")
         st.stop()
 
-    st.success("🎉 Service Booking Request Submitted!")
+    st.success("Service Booking Request Submitted!")
     st.info("After service completion, please submit feedback to improve predictions.")
-    if st.button("📝 Give Feedback Later"):
+    if st.button("Give Feedback Later"):
         st.switch_page("pages/Feedback_Agent.py")
 
 
-    st.markdown("### 📄 Booking Summary")
+    st.markdown("### Booking Summary")
     st.markdown(f"""
 **Customer:** {customer_name}  
 **Phone:** {phone}  
